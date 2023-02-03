@@ -115,12 +115,13 @@
         this.row = 10;
         this.col = 10;
         this.number = 0;
+        this.ftime = 800;
         this.init();
         this.snake = new Snake();
         this.food = new Food(this);
         this.d = 'R';
         this.start();
-        this.bindEvent()
+        this.bindEvent();
     }
     Game.prototype.init = function () {
         this.dom = document.createElement('table')
@@ -176,7 +177,7 @@
             g.snake.update()
             g.snake.render()
             g.food.render()
-        }, 1000)
+        }, this.ftime)
     }
     Game.prototype.bindEvent = function () {
         var that = this;
@@ -282,17 +283,20 @@
         if (this.body[0].row > g.row || this.body[0].col > g.col || this.body[0].row < 0 || this.body[0].col < 0) {
             this.body.shift();
             clearInterval(g.timer);
+            alert('GAME OVER'+'分数：'+ g.number)
             location.reload()
         }
         for (var i = 1; i < this.body.length; i++) {
             if (this.body[0].row === this.body[i].row && this.body[0].col === this.body[i].col) {
                 this.body.shift();
                 clearInterval(g.timer);
+                alert('GAME OVER'+'分数：'+ g.number)
                 location.reload()
             }
         }
         if (this.body[0].row === g.food.row && this.body[0].col === g.food.col) {
             g.number += 1
+            g.ftime -= 500
             g.food = new Food(g)
         } else {
             this.body.pop()
