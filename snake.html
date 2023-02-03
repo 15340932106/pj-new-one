@@ -282,13 +282,13 @@
         if (this.body[0].row > g.row || this.body[0].col > g.col || this.body[0].row < 0 || this.body[0].col < 0) {
             this.body.shift();
             clearInterval(g.timer);
-            // location.reload()
+            location.reload()
         }
         for (var i = 1; i < this.body.length; i++) {
             if (this.body[0].row === this.body[i].row && this.body[0].col === this.body[i].col) {
                 this.body.shift();
                 clearInterval(g.timer);
-                // location.reload()
+                location.reload()
             }
         }
         if (this.body[0].row === g.food.row && this.body[0].col === g.food.col) {
