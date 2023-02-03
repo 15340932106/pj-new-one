@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+</head>
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+    }
+
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    td {
+        width: 50px;
+        height: 50px;
+        box-sizing: border-box;
+    }
+</style>
+
+<body>
+    <div id="app"></div>
+    <button>开始</button>
+</body>
+<script>
+
+    var g;
+    function Game () {
+        this.row = 10;
+        this.col = 10;
+        this.number = 0;
+        this.init();
+        this.snake = new Snake();
+        this.food = new Food(this);
+        this.d = 'R';
+        this.start();
+        this.bindEvent()
+    }
+    Game.prototype.init = function () {
+        this.dom = document.createElement('table')
+        var tr, td;
+        for (var i = 0; i < this.row; i++) {
+            tr = document.createElement('tr')
+            for (var j = 0; j < this.col; j++) {
+                td = document.createElement('td')
+                tr.appendChild(td)
+            }
+            this.dom.appendChild(tr)
+        }
+        this.dom.setAttribute('border', 1)
+        this.num = document.createElement('div')
+        this.num.innerText = '分数：' + this.number
+        document.querySelector('#app').appendChild(this.num)
+        document.querySelector('#app').appendChild(this.dom)
+    }
+    Game.prototype.setColor = function (row, col, color) {
+        this.dom.getElementsByTagName('tr')[row].getElementsByTagName('td')[col].style.background = color;
+    }
+    Game.prototype.setHeadColor = function (row, col, color) {
+        this.dom.getElementsByTagName('tr')[row].getElementsByTagName('td')[col].style.background = color;
+    }
+    Game.prototype.setFood = function (row, col, color) {
+        this.dom.getElementsByTagName('tr')[row].getElementsByTagName('td')[col].style.background = color;
+    }
+    Game.prototype.clear = function () {
+        for (var i = 0; i < this.row; i++) {
+            for (var j = 0; j < this.col; j++) {
+                this.dom.getElementsByTagName('tr')[i].getElementsByTagName('td')[j].style.background = '';
+                this.dom.getElementsByTagName('tr')[i].getElementsByTagName('td')[j].innerHTML = '';
+            }
+        }
+    }
+    Game.prototype.start = function () {
+        this.timer = setInterval(function () {
+            g.num.innerText = '分数：' + g.number
+            g.clear()
+            g.snake.update()
+            g.snake.render()
+            g.food.render()
+        }, 1000)
+    }
+    Game.prototype.bindEvent = function () {
+        var that = this;
+        document.addEventListener('keydown', function (e) {
+            switch (e.keyCode) {
+                case 37:
+                    if (that.snake.direction === 'R') return;
+                    that.snake.changeDirection('L')
+                    this.d = 'L';
+                    break;
+                case 38:
+                    if (that.snake.direction === 'D') return;
+                    that.snake.changeDirection('U')
+                    this.d = 'U';
+                    break;
+                case 39:
+                    if (that.snake.direction === 'L') return;
+                    that.snake.changeDirection('R')
+                    this.d = 'R';
+                    break;
+                case 40:
+                    if (that.snake.direction === 'U') return;
+                    that.snake.changeDirection('D')
+                    this.d = 'D';
+                    break;
+
+            }
+
+        })
+    }
+    function Snake () {
+        this.body = [
+            { row: 1, col: 2 },
+            { row: 1, col: 1 }
+        ],
+            this.direction = 'R';
+        this.willDirection = 'R';
+    }
+    Snake.prototype.render = function () {
+        g.setHeadColor(this.body[0].row, this.body[0].col, '#8a8aff')
+        for (var i = 1; this.body.length > i; i++) {
+            g.setColor(this.body[i].row, this.body[i].col, '#dbdbf8')
+        }
+    }
+    Snake.prototype.update = function () {
+        this.direction = this.willDirection
+        switch (this.direction) {
+            case 'R':   //右
+                this.body.unshift({ 'row': this.body[0].row, 'col': this.body[0].col + 1 });
+                break;
+            case 'D':   //下
+                this.body.unshift({ 'row': this.body[0].row + 1, 'col': this.body[0].col });
+                break;
+            case 'L':   //左
+                this.body.unshift({ 'row': this.body[0].row, 'col': this.body[0].col - 1 });
+                break;
+            case 'U':   //上
+                this.body.unshift({ 'row': this.body[0].row - 1, 'col': this.body[0].col });
+                break;
+        }
+        if (this.body[0].row > g.row || this.body[0].col > g.col || this.body[0].row < 0 || this.body[0].col < 0) {
+            this.body.shift();
+            clearInterval(g.timer);
+            location.reload()
+        }
+        for (var i = 1; i < this.body.length; i++) {
+            if (this.body[0].row === this.body[i].row && this.body[0].col === this.body[i].col) {
+                this.body.shift();
+                clearInterval(g.timer);
+                location.reload()
+            }
+        }
+        if (this.body[0].row === g.food.row && this.body[0].col === g.food.col) {
+            g.number += 1
+            g.food = new Food(g)
+        } else {
+            this.body.pop()
+        }
+    }
+    Snake.prototype.changeDirection = function (d) {
+        this.willDirection = d
+    }
+    function Food (gameSnake) {
+        var that = this
+        do {
+            this.row = parseInt(Math.random() * gameSnake.row)
+            this.col = parseInt(Math.random() * gameSnake.col)
+        } while ((function () {
+            for (var i = 0; i < gameSnake.snake.body.length; i++) {
+                if (that.row == gameSnake.snake.body[i].row && that.col == gameSnake.snake.body[i].col) {
+                    return true;
+                }
+            }
+            return false;
+        })());
+    }
+    Food.prototype.render = function (row, col, color) {
+        g.setFood(this.row, this.col, '#999999')
+    }
+    var bt = document.getElementsByTagName('button')[0]
+    bt.addEventListener('click', function () {
+        g = new Game()
+        g.snake.render()
+        g.food.render()
+        bt.style.display = 'none'
+    })
+
+</script>
+
+</html>
